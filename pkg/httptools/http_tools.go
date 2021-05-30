@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/mikedelafuente/authful-servertools/pkg/customerrors"
+	"github.com/mikedelafuente/authful-servertools/pkg/logger"
 )
 
 type ErrorResponse struct {
@@ -22,7 +23,7 @@ func ExtractErrorMessageFromJsonBytes(data []byte, defaultMessage string) string
 	log.Printf("Body:\n%s\n", body)
 	err := json.Unmarshal(data, &e)
 	if err != nil {
-		log.Println(err)
+		logger.Error(err)
 	} else {
 		return e.Error
 	}
@@ -48,7 +49,13 @@ func HandleResponse(w http.ResponseWriter, b []byte, statusCode int) {
 }
 
 func MarshalFormat(v interface{}) ([]byte, error) {
-	return json.MarshalIndent(v, "", "  ")
+	b, err := json.MarshalIndent(v, "", "  ")
+	if err != nil {
+		logger.Error(err)
+	} else {
+		logger.Debug(string(b))
+	}
+	return b, err
 }
 
 func ProcessResponse(v interface{}, w http.ResponseWriter, statusCode int) {
