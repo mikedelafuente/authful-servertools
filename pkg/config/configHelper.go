@@ -3,7 +3,7 @@ package config
 import (
 	"log"
 	"os"
-	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -25,18 +25,47 @@ func GetConfig() *AuthfulConfig {
 	return configInstance
 }
 
+func (s AuthfulConfig) GetLogLevel() string {
+	return s.logLevel
+}
+
+// If no value is set in the environmental variable "AUTHFUL_LOG_LEVEL" then "ERROR" is returned
+func getLogLevel() string {
+	logLevel := os.Getenv("AUTHFUL_LOG_LEVEL")
+	if len(logLevel) == 0 {
+		logLevel = "ERROR"
+	}
+
+	return strings.TrimSpace(strings.ToUpper(logLevel))
+}
+
 func getConfigInstanceFromEnvironment() (*AuthfulConfig, error) {
 	log.Println("Loading config from environment")
 
-	var myConfig *AuthfulConfig = &AuthfulConfig{}
-
-	isDebug, err := strconv.ParseBool(os.Getenv("IS_DEBUG"))
-	if err != nil {
-		log.Println(err)
-		myConfig.IsDebug = true
-		return myConfig, err
+	var myConfig *AuthfulConfig = &AuthfulConfig{
+		logLevel: getLogLevel(),
 	}
-	myConfig.IsDebug = isDebug
+
+	switch logLevel := myConfig.logLevel; {
+	case logLevel == "VERBOSE" || logLevel == "ALL":
+		myConfig.LogVerbose = true
+		fallthrough
+	case logLevel == "DEBUG":
+		myConfig.LogDebug = true
+		fallthrough
+	case logLevel == "INFO":
+		myConfig.LogInfo = true
+		fallthrough
+	case logLevel == "WARN":
+		myConfig.LogWarn = true
+		fallthrough
+	case logLevel == "ERROR":
+		myConfig.LogError = true
+	case logLevel == "FATAL":
+		myConfig.LogFatal = true
+	default: // SAME AS "OFF"
+		// Do nothing
+	}
 
 	return myConfig, nil
 }
