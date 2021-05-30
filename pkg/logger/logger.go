@@ -77,3 +77,8 @@ func Verbose(v ...interface{}) {
 		log.Println(v...)
 	}
 }
+
+// If no value is set in the environmental variable "AUTHFUL_LOG_LEVEL" then "ERROR" is returned. Returns the same output as config.GetConfig().GetLogLevel()
+func GetLogLevel() string {
+	return config.GetConfig().GetLogLevel()
+}

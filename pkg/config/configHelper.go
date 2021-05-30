@@ -25,6 +25,7 @@ func GetConfig() *AuthfulConfig {
 	return configInstance
 }
 
+// If no value is set in the environmental variable "AUTHFUL_LOG_LEVEL" then "ERROR" is returned
 func (s AuthfulConfig) GetLogLevel() string {
 	return s.logLevel
 }
