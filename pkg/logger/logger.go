@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"context"
 	"log"
 
 	"github.com/mikedelafuente/authful-servertools/pkg/config"
@@ -15,10 +16,9 @@ func Printf(format string, v ...interface{}) {
 // configuration, a report may be sent to the SDK developer and/or the process may be
 // terminated immediately with an error dialog.
 // Set environmental variable 'AUTHFUL_LOG_LEVEL' to at least "FATAL" to see these logs.
-func Fatal(v ...interface{}) {
+func Fatal(ctx context.Context, v ...interface{}) {
 	if config.GetConfig().LogFatal {
-		log.Print("FATAL: ")
-		log.Fatal(v...)
+		log.Printf("[AUTHFUL FATAL] %v \n", v...)
 	}
 }
 
@@ -31,10 +31,9 @@ func Println(v ...interface{}) {
 // this to log stuff you didn't expect to happen but isn't necessarily an error. Kind of
 // like a "hey, this happened, and it's weird, we should look into it."
 // Set environmental variable 'AUTHFUL_LOG_LEVEL' to at least "WARN" to see these logs.
-func Warn(v ...interface{}) {
+func Warn(ctx context.Context, v ...interface{}) {
 	if config.GetConfig().LogWarn {
-		log.Print("WARN: ")
-		log.Println(v...)
+		log.Printf("[AUTHFUL WARN] %v \n", v...)
 	}
 
 }
@@ -42,28 +41,25 @@ func Warn(v ...interface{}) {
 // This is for when bad stuff happens. Use this tag in places like inside a catch
 // statement. You know that an error has occurred and therefore you're logging an error.
 // Set environmental variable 'AUTHFUL_LOG_LEVEL' to at least "ERROR" to see these logs.
-func Error(v ...interface{}) {
+func Error(ctx context.Context, v ...interface{}) {
 	if config.GetConfig().LogError {
-		log.Print("ERROR: ")
-		log.Println(v...)
+		log.Printf("[AUTHFUL ERROR] %v \n", v...)
 	}
 }
 
 // Set environmental variable 'AUTHFUL_LOG_LEVEL' to at least "DEBUG" to see these logs.
-func Debug(v ...interface{}) {
+func Debug(ctx context.Context, v ...interface{}) {
 	if config.GetConfig().LogDebug {
-		log.Print("DEBUG: ")
-		log.Println(v...)
+		log.Printf("[AUTHFUL DEBUG] %v \n", v...)
 	}
 }
 
 // Use this to post useful information to the log. For example: that you have successfully connected to a server.
 // Basically use it to report successes.
 // Set environmental variable 'AUTHFUL_LOG_LEVEL' to at least "INFO" to see these logs.
-func Info(v ...interface{}) {
+func Info(ctx context.Context, v ...interface{}) {
 	if config.GetConfig().LogInfo {
-		log.Print("INFO: ")
-		log.Println(v...)
+		log.Printf("[AUTHFUL INFO] %v \n", v...)
 	}
 }
 
@@ -71,10 +67,9 @@ func Info(v ...interface{}) {
 // you've decided to log every little thing in a particular part of your app, use the
 // Verbose tag.
 // Set environmental variable 'AUTHFUL_LOG_LEVEL' to at least "VERBOSE" or "ALL" to see these logs.
-func Verbose(v ...interface{}) {
+func Verbose(ctx context.Context, v ...interface{}) {
 	if config.GetConfig().LogVerbose {
-		log.Print("VERBOSE: ")
-		log.Println(v...)
+		log.Printf("[AUTHFUL VERBOSE] %v \n", v...)
 	}
 }
 

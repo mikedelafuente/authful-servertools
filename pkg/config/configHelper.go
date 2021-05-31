@@ -41,7 +41,7 @@ func getLogLevel() string {
 }
 
 func getConfigInstanceFromEnvironment() (*AuthfulConfig, error) {
-	log.Println("Loading config from environment")
+	log.Println("Loading server tools config from environment since AUTHFUL_LOG_LEVEL is set")
 
 	var myConfig *AuthfulConfig = &AuthfulConfig{
 		logLevel: getLogLevel(),
