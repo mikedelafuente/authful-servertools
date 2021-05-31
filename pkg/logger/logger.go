@@ -13,7 +13,7 @@ func Printf(format string, v ...interface{}) {
 	log.Printf(format, v...)
 }
 
-func GetTraceId(ctx context.Context) string {
+func getTraceId(ctx context.Context) string {
 	v := ctx.Value(customclaims.ContextTraceId)
 	if v != nil {
 		traceId := v.(string)
@@ -21,13 +21,18 @@ func GetTraceId(ctx context.Context) string {
 	}
 	return ""
 }
-func getTraceIdForLogging(ctx context.Context) string {
-	traceId := GetTraceId(ctx)
-	if len(traceId) > 0 {
-		return fmt.Sprintf("[%s]", traceId)
-	}
 
-	return traceId
+func getUserId(ctx context.Context) string {
+	v := ctx.Value(customclaims.ContextKeyUserId)
+	if v != nil {
+		userId := v.(string)
+		return userId
+	}
+	return ""
+}
+
+func getLogLinePrefix(ctx context.Context, logLevel string) string {
+	return fmt.Sprintf("[LVL:%s][UID:%s][TID:%s]", logLevel, getUserId(ctx), getTraceId(ctx))
 }
 
 // What a Terrible Failure: Report a condition that should never happen. The error will
@@ -37,8 +42,7 @@ func getTraceIdForLogging(ctx context.Context) string {
 // Set environmental variable 'AUTHFUL_LOG_LEVEL' to at least "FATAL" to see these logs.
 func Fatal(ctx context.Context, v interface{}) {
 	if config.GetConfig().LogFatal {
-
-		log.Printf("[AUTHFUL FATAL]%s %v \n", getTraceIdForLogging(ctx), v)
+		log.Printf("%s %v \n", getLogLinePrefix(ctx, "FATAL"), v)
 	}
 }
 
@@ -53,7 +57,7 @@ func Println(v ...interface{}) {
 // Set environmental variable 'AUTHFUL_LOG_LEVEL' to at least "WARN" to see these logs.
 func Warn(ctx context.Context, v interface{}) {
 	if config.GetConfig().LogWarn {
-		log.Printf("[AUTHFUL WARN]%s %v \n", getTraceIdForLogging(ctx), v)
+		log.Printf("%s %v \n", getLogLinePrefix(ctx, "WARN"), v)
 	}
 
 }
@@ -63,14 +67,14 @@ func Warn(ctx context.Context, v interface{}) {
 // Set environmental variable 'AUTHFUL_LOG_LEVEL' to at least "ERROR" to see these logs.
 func Error(ctx context.Context, v interface{}) {
 	if config.GetConfig().LogError {
-		log.Printf("[AUTHFUL ERROR]%s %v \n", getTraceIdForLogging(ctx), v)
+		log.Printf("%s %v \n", getLogLinePrefix(ctx, "ERROR"), v)
 	}
 }
 
 // Set environmental variable 'AUTHFUL_LOG_LEVEL' to at least "DEBUG" to see these logs.
 func Debug(ctx context.Context, v interface{}) {
 	if config.GetConfig().LogDebug {
-		log.Printf("[AUTHFUL DEBUG]%s %v \n", getTraceIdForLogging(ctx), v)
+		log.Printf("%s %v \n", getLogLinePrefix(ctx, "DEBUG"), v)
 	}
 }
 
@@ -79,7 +83,7 @@ func Debug(ctx context.Context, v interface{}) {
 // Set environmental variable 'AUTHFUL_LOG_LEVEL' to at least "INFO" to see these logs.
 func Info(ctx context.Context, v interface{}) {
 	if config.GetConfig().LogInfo {
-		log.Printf("[AUTHFUL INFO]%s %v \n", getTraceIdForLogging(ctx), v)
+		log.Printf("%s %v \n", getLogLinePrefix(ctx, "INFO"), v)
 	}
 }
 
@@ -89,7 +93,7 @@ func Info(ctx context.Context, v interface{}) {
 // Set environmental variable 'AUTHFUL_LOG_LEVEL' to at least "VERBOSE" or "ALL" to see these logs.
 func Verbose(ctx context.Context, v interface{}) {
 	if config.GetConfig().LogVerbose {
-		log.Printf("[AUTHFUL VERBOSE]%s %v \n", getTraceIdForLogging(ctx), v)
+		log.Printf("%s %v \n", getLogLinePrefix(ctx, "VERBOSE"), v)
 	}
 }
 
