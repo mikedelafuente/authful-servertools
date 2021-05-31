@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/mikedelafuente/authful-servertools/pkg/config"
 	"github.com/mikedelafuente/authful-servertools/pkg/customclaims"
 	"github.com/mikedelafuente/authful-servertools/pkg/customerrors"
 	"github.com/mikedelafuente/authful-servertools/pkg/logger"
@@ -27,7 +28,7 @@ func NewRequest(ctx context.Context, method, url string, body io.Reader) (*http.
 func Post(ctx context.Context, url string, requestModel interface{}) ([]byte, int, error) {
 	client := &http.Client{}
 
-	logger.Debug(ctx, "Marshaling model for POST %s")
+	logger.Debug(ctx, fmt.Sprintf("Marshaling model for POST %s", url))
 	requestBytes, err := MarshalFormat(ctx, requestModel)
 	if err != nil {
 		logger.Error(ctx, err)
@@ -40,15 +41,7 @@ func Post(ctx context.Context, url string, requestModel interface{}) ([]byte, in
 		return nil, 0, err
 	}
 
-	req.Header.Add("Accept", "application/json")
-	req.Header.Add("Content-Type", "application/json")
-	jwt := ctx.Value(customclaims.ContextJwt)
-	if jwt != nil {
-		jwtRaw := jwt.(string)
-		if len(jwtRaw) > 0 {
-			req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", jwtRaw))
-		}
-	}
+	setRequestHeader(ctx, req)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -77,6 +70,35 @@ func Post(ctx context.Context, url string, requestModel interface{}) ([]byte, in
 	return bodyBytes, resp.StatusCode, nil
 }
 
+func setRequestHeader(ctx context.Context, req *http.Request) {
+	req.Header.Add("Accept", "application/json")
+	req.Header.Add("Content-Type", "application/json")
+	jwt := ctx.Value(customclaims.ContextJwt)
+	if jwt != nil {
+		jwtRaw := jwt.(string)
+		if len(jwtRaw) > 0 {
+			req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", jwtRaw))
+		}
+	}
+
+	traceId := ctx.Value(customclaims.ContextTraceId)
+	if traceId != nil {
+		traceIdRaw := traceId.(string)
+		if len(traceIdRaw) > 0 {
+			req.Header.Add("x-trace-id", traceIdRaw)
+		}
+	}
+
+	if config.GetConfig().LogDebug {
+		for name, values := range req.Header {
+			// Loop over all values for the name.
+			for _, value := range values {
+				logger.Debug(ctx, fmt.Sprintf("%s: %v", name, value))
+			}
+		}
+	}
+}
+
 func ExtractErrorMessageFromJsonBytes(ctx context.Context, data []byte, defaultMessage string) string {
 	if len(data) == 0 {
 		return defaultMessage
@@ -84,7 +106,7 @@ func ExtractErrorMessageFromJsonBytes(ctx context.Context, data []byte, defaultM
 
 	var e ErrorResponse
 	body := string(data)
-	logger.Debug(ctx, "Error body:\n%s\n", body)
+	logger.Debug(ctx, fmt.Sprintf("Error body:\n%s\n", body))
 	err := json.Unmarshal(data, &e)
 	if err != nil {
 		logger.Error(ctx, err)
