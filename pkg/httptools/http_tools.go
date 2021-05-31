@@ -94,12 +94,13 @@ func doApiCall(ctx context.Context, method string, url string, requestModel inte
 	logger.Debug(ctx, fmt.Sprintf("Preparing call to %s %s", method, url))
 	requestBytes := []byte{}
 	if !strings.EqualFold(method, "DELETE") && !strings.EqualFold(method, "GET") {
-		requestBytes, err := MarshalFormat(ctx, requestModel)
+		var err error
+		requestBytes, err = MarshalFormat(ctx, requestModel)
 		if err != nil {
 			logger.Error(ctx, err)
 			return nil, 0, err
 		}
-		logger.Debug(ctx, fmt.Sprintf("JSON for %s: %s", method, string(requestBytes)))
+		logger.Debug(ctx, fmt.Sprintf("JSON for %s %s: %s", method, url, string(requestBytes)))
 	}
 
 	// Create a new HTTP request
